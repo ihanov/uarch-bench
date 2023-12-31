@@ -46,6 +46,11 @@ bench2_f fusion_better_fused;
 bench2_f fusion_better_unfused;
 bench2_f misc_macro_fusion_addjo;
 
+bench2_f cmp_fused_1;
+bench2_f cmp_fused_2;
+bench2_f cmp_fused_3;
+bench2_f cmp_fused_4;
+
 bench2_f adc_0_lat;
 bench2_f adc_1_lat;
 bench2_f adc_rcx_lat;
@@ -214,8 +219,19 @@ void register_misc(GroupList& list) {
         default_maker::template make_bench<fusion_better_fused>(dendibakh.get(), "fusion-better-fused", "Fused summation",  1, []{ return aligned_ptr(64, 8000); }, 1024),
         default_maker::template make_bench<fusion_better_unfused>(dendibakh.get(), "fusion-better-unfused", "Unfused summation",  1, []{ return aligned_ptr(64, 8000); }, 1024)
 
+
     });
     list.push_back(dendibakh);
+
+    std::shared_ptr<BenchmarkGroup> fusion_cmp_jcc = std::make_shared<BenchmarkGroup>("fusion-cmp-jcc", "Fusion tests based on cmp/jcc");
+
+    fusion_cmp_jcc->add(std::vector<Benchmark> {
+        default_maker::template make_bench<cmp_fused_1>(fusion_cmp_jcc.get(), "cmp-fused-1", "cmp [rdi], eax / jnz", 1, null_provider, 8192),
+        default_maker::template make_bench<cmp_fused_2>(fusion_cmp_jcc.get(), "cmp-fused-3", "cmp [rdi], eax / jnz (mov edx, 1)", 1, null_provider, 8192),
+        default_maker::template make_bench<cmp_fused_3>(fusion_cmp_jcc.get(), "cmp-fused-2", "cmp [rdi+rax], eax / jne", 1, null_provider, 8192),
+        default_maker::template make_bench<cmp_fused_4>(fusion_cmp_jcc.get(), "cmp-fused-4", "cmp dword [rdi], 0 / jnz", 1, null_provider, 8192),
+    });
+    list.push_back(fusion_cmp_jcc);
 
     {
         std::shared_ptr<BenchmarkGroup> bmi_group = std::make_shared<BenchmarkGroup>("bmi", "BMI false-dependency tests");

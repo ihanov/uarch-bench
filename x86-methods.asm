@@ -1284,6 +1284,63 @@ jnz     .unfused_loop
 add     rsp, rax
 ret
 
+
+define_bench cmp_fused_1
+mov     rax, rdi
+sub     rsp, 8
+mov     rdi, rsp
+mov     [rdi], rax
+xor     eax, eax
+.fused_loop:
+mov     edx, 1
+dec     dword [rdi]
+cmp     [rdi], eax
+jnz     .fused_loop
+add     rsp, 8
+ret
+
+define_bench cmp_fused_2
+mov     rax, rdi
+sub     rsp, 8
+mov     rdi, rsp
+mov     [rdi], rax
+xor     rax, rax
+.fused_loop:
+dec     dword [rdi]
+cmp     [rdi+rax], eax
+mov     edx, 1
+jne     .fused_loop
+add     rsp, 8
+ret
+
+define_bench cmp_fused_3
+mov     rax, rdi
+sub     rsp, 8
+mov     rdi, rsp
+mov     [rdi], rax
+xor     rax, rax
+.fused_loop:
+mov     edx, 1
+dec     dword [rdi]
+cmp     [rdi+rax], eax
+jne     .fused_loop
+add     rsp, 8
+ret
+
+define_bench cmp_fused_4
+mov     rax, rdi
+sub     rsp, 8
+mov     rdi, rsp
+mov     [rdi], rax
+.unfused_loop:
+mov     edx, 1
+dec     dword [rdi]
+cmp     dword [rdi], 0
+jnz     .unfused_loop
+add     rsp, 8
+ret
+
+
 define_bench vz_samereg
 xor ecx, ecx
 vzeroall
