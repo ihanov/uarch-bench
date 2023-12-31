@@ -28,6 +28,27 @@ void *constant() {
     return reinterpret_cast<void *>(X);
 }
 
+long fork_glibc(uint64_t iters, void *arg) {
+    while (iters-- > 0) {
+        if (fork() == 0)
+            exit(0);
+        /*
+         * process tables will be cleared
+         * after exeuction is finished, so no
+         * zombie processes should be left.
+         */
+    }
+    return 0;
+}
+
+long fork_syscall(uint64_t iters, void *arg) {
+    while (iters-- > 0) {
+        if (syscall(SYS_fork) == 0)
+            exit(0);
+    }
+    return 0;
+}
+
 long getuid_glibc(uint64_t iters, void *arg) {
     while (iters-- > 0) {
         getuid();
@@ -109,6 +130,11 @@ void register_syscall(GroupList& list) {
         maker.template make<syscall_asm_lfence_before>("lfence-before",    "syscall+lfence before",         1, constant<123456>);
         maker.template make<syscall_asm_lfence_after> ( "lfence-after",    "syscall+lfence after",          1, constant<123456>);
         maker.template make<lfence_only>              ("lfence-only",      "back-to-back lfence",           8, constant<0>);
+
+        auto maker_fork = DeltaMaker<TIMER>(syscall_group.get(), 128).setTags({"os"});
+
+        maker_fork.template make<fork_glibc>       ("fork-glibc",          "fork() glibc calls", 1);
+        maker_fork.template make<fork_syscall>     ("fork-syscall",        "fork() raw syscall", 1);
 
         auto aligned_buf = [](){ return aligned_ptr(4096, BUFSIZE); };
         maker = maker.setLoopCount(524288).setTags({"slow"});
