@@ -1284,6 +1284,38 @@ jnz     .unfused_loop
 add     rsp, rax
 ret
 
+define_bench no_unlamination
+xor     rcx, rcx
+xor     rax, rax   ; "xor" instruction is needed only
+                   ; for consistency reason to be able to
+                   ; compare other "[un-]lamination" tests.
+sub     rsp, 8
+mov     rsi, rsp
+mov     [rsi], rdi
+.top:
+cmp     rcx, [rsi] ; 3 registers involved (FLAGS, RCX, RSI),
+                   ; so no unlamintation should be done.
+                   ; It doesn't matter what RCX contains.
+dec     dword [rsi]
+jnz     .top
+add     rsp, 8
+ret
+
+define_bench unlamination
+xor     rcx, rcx
+xor     rax, rax
+sub     rsp, 8
+mov     rsi, rsp
+mov     [rsi], rdi
+.top:
+cmp     rcx, [rsi + rax*4] ; 4 registers involved (FLAGS, RCX, RSI, RAX),
+                           ; so according to Intel optimization manual
+                           ; "un-lamination" procedure should be applied.
+dec     dword [rsi + rax*4]
+jnz     .top
+add     rsp, 8
+ret
+
 define_bench vz_samereg
 xor ecx, ecx
 vzeroall

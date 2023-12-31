@@ -46,6 +46,9 @@ bench2_f fusion_better_fused;
 bench2_f fusion_better_unfused;
 bench2_f misc_macro_fusion_addjo;
 
+bench2_f no_unlamination;
+bench2_f unlamination;
+
 bench2_f adc_0_lat;
 bench2_f adc_1_lat;
 bench2_f adc_rcx_lat;
@@ -216,6 +219,16 @@ void register_misc(GroupList& list) {
 
     });
     list.push_back(dendibakh);
+
+    std::shared_ptr<BenchmarkGroup> unlamination_benches = std::make_shared<BenchmarkGroup>("unlamination", "\"[Un-]lamination procedure\"");
+
+    unlamination_benches->add(std::vector<Benchmark> {
+
+        default_maker::template make_bench<no_unlamination>(unlamination_benches.get(), "no-unlamination", "No unlamination using cmp rcx, [rsi]", 1, null_provider, 8192),
+        default_maker::template make_bench<unlamination>(unlamination_benches.get(), "unlamination", "Unlamination using cmp rcx, [rsi + rax*4]", 1, null_provider, 8192)
+
+    });
+    list.push_back(unlamination_benches);
 
     {
         std::shared_ptr<BenchmarkGroup> bmi_group = std::make_shared<BenchmarkGroup>("bmi", "BMI false-dependency tests");
